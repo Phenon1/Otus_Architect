@@ -15,7 +15,7 @@ namespace HW7.TypesObject
         }
         public virtual void SetProperty<T>(string key, T val)
         {
-            _values[key] = val;
+            _values[key] = val!;
         }
     }
 }
