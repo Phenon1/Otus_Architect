@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HW7.TypesObject
+namespace ModelsProj.TypesObject
 {
     public abstract class Uobject : IUObject
     {

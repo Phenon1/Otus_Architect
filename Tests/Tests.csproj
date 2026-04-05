@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HW4\HW4.csproj" />
-    <ProjectReference Include="..\HW7\HW7.csproj" />
+    <ProjectReference Include="..\HW7\ModelsProj.csproj" />
     <ProjectReference Include="..\HW8\CommandsProj.csproj" />
   </ItemGroup>
 

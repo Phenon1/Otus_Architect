@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HW7.Classes
+namespace ModelsProj.Classes
 {
     public class Rotate
     {
 
-        IRotateObject _obj;
+        internal IRotateObject _obj;
 
         public Rotate(IRotateObject obj)
         {

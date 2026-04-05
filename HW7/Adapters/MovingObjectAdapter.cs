@@ -1,15 +1,15 @@
-﻿using HW7.Classes;
+﻿using ModelsProj.Classes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HW7.Adapters
+namespace ModelsProj.Adapters
 {
     public class MovingObjectAdapter : IMovingObject
     {
-        IUObject _object;
+        protected IUObject _object;
         public MovingObjectAdapter(IUObject uObject)
         {
             _object = uObject;
