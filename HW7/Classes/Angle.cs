@@ -5,13 +5,14 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HW7.Classes
+namespace ModelsProj.Classes
 {
     public class Angle
     {
         const double _degreesPerSector = 9.0;
         const byte _sectorCount = 40;
         public sbyte sector;
+        private static readonly double _radPerSector = (_degreesPerSector * Math.PI) / 180.0;
 
 
         public Angle(sbyte sector)
@@ -22,16 +23,15 @@ namespace HW7.Classes
 
             this.sector = normalized;
         }
-        public Angle(double angle)
-        {
-            var normalized = angle % 360.0;
-            if (normalized < 0) 
-                normalized += 360.0;
-            sector = Convert.ToSByte(Math.Truncate(normalized / _degreesPerSector));
-        }
-        public double getAngle()
+
+        public double getAngleDegree()
         {
             return _degreesPerSector * sector;
+        }
+
+        public double getAngleRadian()
+        {
+            return _radPerSector * sector;
         }
 
         public sbyte getSector()
@@ -41,7 +41,7 @@ namespace HW7.Classes
 
         public static Angle RotateTo(Angle currAngle, Angle rotateAngle)
         {
-            return new Angle(currAngle.getSector() + rotateAngle.getSector());
+            return new Angle((sbyte)(currAngle.getSector() + rotateAngle.getSector()));
         }
 
     }

@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using ModelsProj;
+using ModelsProj.Classes;
 
-namespace ModelsProj.Classes
+namespace CommandsProj.Commands.MoveCommands
 {
-    public class Move 
+    public class MoveCommand : ICommand
     {
         IMovingObject _obj;
 
-        public Move(IMovingObject obj)
+        public MoveCommand(IMovingObject obj)
         {
             _obj = obj;
         }

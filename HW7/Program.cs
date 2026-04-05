@@ -1,8 +1,8 @@
-﻿using HW7;
+﻿using ModelsProj;
 using System.Text.RegularExpressions;
-using HW7.Classes;
+using ModelsProj.Classes;
 
-namespace HW7
+namespace ModelsProj
 {
     public class ProgramHW7
     {

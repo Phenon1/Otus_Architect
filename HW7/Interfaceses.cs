@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HW7.Classes;
+using ModelsProj.Classes;
 
-namespace HW7
+namespace ModelsProj
 {
     public interface IUObject
     {
@@ -19,6 +19,18 @@ namespace HW7
         void SetLocation(Point location);
         Vector GetVelocity();
     }
+    public interface IMovingObjectV2 : IMovingObject
+    {
+        void SetVelocity(Vector vector);
+    }
+
+    public interface IFuelHaveObject
+    {
+        float GetFuel();
+        void SetFuel(float fuel);
+        float GetFuelBurnVelocity();
+
+    }
 
     public interface IRotateObject
     {
@@ -27,5 +39,9 @@ namespace HW7
 
         Angle GetAnleVelocity();
     }
+
+    public interface IMovingWithFuelObject : IMovingObject, IFuelHaveObject { }
+
+
 
 }

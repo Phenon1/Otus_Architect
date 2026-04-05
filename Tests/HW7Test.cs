@@ -1,10 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.TestHost;
-using HW7;
+using ModelsProj;
 using NUnit.Framework;
 using Moq;
-using HW7.Classes;
-using HW7.Adapters;
-using HW7.TypesObject;
+using ModelsProj.Classes;
+using ModelsProj.Adapters;
+using ModelsProj.TypesObject;
 
 namespace Tests
 {
@@ -24,38 +24,9 @@ namespace Tests
             public void GetAngleTest(sbyte sector, double expectedAngle)
             {
                 var a = new Angle(sector);
-                Assert.That(a.getAngle(), Is.EqualTo(expectedAngle).Within(1e-10));
+                Assert.That(a.getAngleDegree(), Is.EqualTo(expectedAngle).Within(1e-10));
             }
 
-            [TestCase(0.0, 0)]
-            [TestCase(0.0001, 0)]
-            [TestCase(8.999999, 0)]
-            [TestCase(9.0, 1)]
-            [TestCase(17.999999, 1)]
-            [TestCase(18.0, 2)]
-            [TestCase(350.999999, 38)]
-            [TestCase(351.0, 39)]
-            [TestCase(359.999999, 39)]
-            [TestCase(720.0, 0)]
-            [TestCase(361.0, 0)]  
-            [TestCase(369.0, 1)]   
-            [TestCase(719.9999, 39)]
-            public void GetSectorTests(double angle, byte expectedSector)
-            {
-                var a = new Angle(angle);
-                Assert.That(a.getSector(), Is.EqualTo(expectedSector));
-            }
-
-            [TestCase(-1.0, 39)]    
-            [TestCase(-9.0, 39)]    
-            [TestCase(-10.0, 38)]   
-            [TestCase(-360.0, 0)]
-            [TestCase(-361.0, 39)]
-            public void NegativeNormalizeTest(double angle, byte expectedSector)
-            {
-                var a = new Angle(angle);
-                Assert.That(a.getSector(), Is.EqualTo(expectedSector));
-            }
 
         }
 
