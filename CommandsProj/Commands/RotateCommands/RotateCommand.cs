@@ -6,20 +6,19 @@ using System.Text;
 
 namespace CommandsProj.Commands.RotateCommands
 {
-    public class ChangeVelocityCommand : ICommand
+    public class RotateCommand : ICommand
     {
-        IMovingObjectV2 _obj;
-        Vector _velocity;
 
-        public ChangeVelocityCommand(IMovingObjectV2 obj, Vector velocity)
+        internal IRotateObject _obj;
+
+        public RotateCommand(IRotateObject obj)
         {
             _obj = obj;
-            _velocity = velocity;
         }
 
         public void Execute()
         {
-            _obj.SetVelocity(_velocity);
+            _obj.SetAngle(Angle.RotateTo(_obj.GetAngle(), _obj.GetAnleVelocity()));
         }
     }
 }

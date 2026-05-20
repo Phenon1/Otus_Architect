@@ -23,5 +23,9 @@ namespace ModelsProj.Classes
 
             return (vector.dx == this.dx && vector.dy == this.dy);
         }
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(dx, dy);
+        }
     }
 }
