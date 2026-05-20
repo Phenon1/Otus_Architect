@@ -13,14 +13,14 @@ namespace CommandsProj
             Type,
             ConcurrentDictionary<
                 Type,
-                Func<ConcurrentQueue<ICommand>, ICommand, Exception, ICommand>
+                Func< ICommand, Exception, ICommand>
             >
         > _store = new();
 
-        private static readonly ICommand defExCommand = new LogExCommand();
+        public static readonly ICommand? defExCommand = null;
 
 
-        public static ICommand Handle(ConcurrentQueue<ICommand> commands, ICommand command, Exception ex)
+        public static ICommand? Handle(ICommand command, Exception ex)
         {
             Type? type = command.GetType();
             Type? exType = ex.GetType();
@@ -31,14 +31,14 @@ namespace CommandsProj
             if (!dicExType.TryGetValue(exType, out var func))
                 return defExCommand;
 
-            return func(commands, command, ex);
+            return func(command, ex);
         }
 
-        public static void Register(Type comType, Type exType, Func<ConcurrentQueue<ICommand>,ICommand, Exception, ICommand> f)
+        public static void Register(Type comType, Type exType, Func<ICommand, Exception, ICommand> f)
         {
             var exDict = _store.GetOrAdd(comType, _ => new ConcurrentDictionary<
               Type,
-              Func<ConcurrentQueue<ICommand>, ICommand, Exception, ICommand>
+              Func< ICommand, Exception, ICommand>
             >());
             _store[comType][exType] = f;
         }

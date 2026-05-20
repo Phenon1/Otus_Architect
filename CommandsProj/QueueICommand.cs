@@ -8,14 +8,14 @@ namespace CommandsProj
 {
     public class QueueICommand
     {
-        public readonly ConcurrentQueue<ICommand> commands;
+        public readonly ConcurrentStack<ICommand> commands;
         public int counterExecuteCommand = 0;
 
         public QueueICommand()
         {
-            this.commands = new ConcurrentQueue<ICommand>();
+            this.commands = new ConcurrentStack<ICommand>();
         }
-        public QueueICommand(ConcurrentQueue<ICommand> commands)
+        public QueueICommand(ConcurrentStack<ICommand> commands)
         {
             this.commands = commands;
         }
@@ -24,7 +24,7 @@ namespace CommandsProj
         {
             while (!cancel.IsCancellationRequested)
             {
-                commands.TryDequeue(out ICommand? command);
+                commands.TryPop(out ICommand? command);
                 if (command != null)
                 {
                     try
@@ -34,9 +34,13 @@ namespace CommandsProj
                     }
                     catch (Exception ex)
                     {
-                        ExceptionHandler.Handle(commands, command, ex).Execute();
+                        ICommand? recoveryCommand = ExceptionHandler.Handle(command, ex);
+                        if (recoveryCommand != null)
+                        {
+                            commands.Push(recoveryCommand);
+                        }
+                    
                     }
-
                 }
                 else
                     break;

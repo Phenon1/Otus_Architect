@@ -19,9 +19,10 @@ namespace ModelsProj
         void SetLocation(Point location);
         Vector GetVelocity();
     }
-    public interface IMovingObjectV2 : IMovingObject
+    public interface IDirectionChangeable 
     {
         void SetVelocity(Vector vector);
+        Vector GetVelocity();
     }
 
     public interface IFuelHaveObject

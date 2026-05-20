@@ -1,0 +1,56 @@
+﻿using IoCProj.Commands;
+using System.Collections.Concurrent;
+
+namespace IoCProj
+{
+    public static class IoC
+    {
+
+        public delegate object DependencyStrategy(params object[] args);
+
+        private static readonly AsyncLocal<IDictionary<string, DependencyStrategy>> _currentScope =
+            new AsyncLocal<IDictionary<string, DependencyStrategy>>();
+
+        private static readonly ConcurrentDictionary<string, DependencyStrategy> _rootScope = new();
+
+        static IoC()
+        {
+            _rootScope["IoC.Register"] = (args) => new RegisterCommand((string)args[0], (DependencyStrategy)args[1]);
+            _rootScope["Scopes.New"] = (args) => new NewScopeCommand((string)args[0]);
+            _rootScope["Scopes.Current"] = (args) => new CurrentScopeCommand((string)args[0]);
+            _rootScope["Scopes.Id.root"] = (args) => _rootScope;
+        }
+
+        public static T Resolve<T>(string key, params object[] args)
+        {
+            if (key == "IoC.Register" || key == "Scopes.New" || key == "Scopes.Current")
+            {
+                return (T)_rootScope[key](args);
+            }
+
+            var currentScope = _currentScope.Value;
+            if (currentScope != null && currentScope.TryGetValue(key, out var strategy))
+            {
+                return (T)strategy(args);
+            }
+
+            if (_rootScope.TryGetValue(key, out var rootStrategy))
+            {
+                return (T)rootStrategy(args);
+            }
+
+            throw new KeyNotFoundException($"Зависимость '{key}' не найдена.");
+        }
+
+
+        internal static IDictionary<string, DependencyStrategy> GetCurrentStorage()
+        {
+            return _currentScope.Value ?? _rootScope;
+        }
+
+        internal static void SetCurrentScope(IDictionary<string, DependencyStrategy> scope)
+        {
+            _currentScope.Value = scope;
+        }
+    }
+}
