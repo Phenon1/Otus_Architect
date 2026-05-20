@@ -22,7 +22,6 @@
     <ProjectReference Include="..\CommandsProj\CommandsProj.csproj" />
     <ProjectReference Include="..\HW4\HW4.csproj" />
     <ProjectReference Include="..\HW7\ModelsProj.csproj" />
-    <ProjectReference Include="..\HW8\CommandsProj.csproj" />
     <ProjectReference Include="..\IoCProj\IoCProj.csproj" />
   </ItemGroup>
 
