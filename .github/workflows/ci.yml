@@ -18,5 +18,33 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --configuration Release --no-restore
-      - name: Test
-        run: dotnet test --configuration Release --no-build
+      - name: Test with coverage
+        run: dotnet test --configuration Release --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/Coverage/
+
+      - name: Coverage summary
+        run: |
+          python - <<'PY2'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          coverage_file = Path('Tests/TestResults/Coverage/coverage.cobertura.xml')
+          if not coverage_file.exists():
+              raise SystemExit(f'Coverage report not found: {coverage_file}')
+
+          root = ET.parse(coverage_file).getroot()
+          line_rate = float(root.attrib.get('line-rate', 0))
+          branch_rate = float(root.attrib.get('branch-rate', 0))
+
+          line_percent = line_rate * 100
+          branch_percent = branch_rate * 100
+
+          summary = Path().joinpath('.coverage-summary.md')
+          summary.write_text(
+              '## Test Coverage\n'
+              f'- **Line coverage:** {line_percent:.2f}%\n'
+              f'- **Branch coverage:** {branch_percent:.2f}%\n'
+          )
+          PY2
+
+          cat .coverage-summary.md >> "$GITHUB_STEP_SUMMARY"
+          cat .coverage-summary.md
