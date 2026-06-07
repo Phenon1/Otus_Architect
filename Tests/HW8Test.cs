@@ -54,7 +54,7 @@ namespace Tests
 
                 QueueICommand queue = new QueueICommand();
                 TestWrongCommand1 wrongCommand1 = new TestWrongCommand1();
-                queue.commands.Push(wrongCommand1);  
+                queue.Enqueue(wrongCommand1);  
 
                 queue.Execute(cts.Token);
                 Console.SetOut(sw);
@@ -66,7 +66,7 @@ namespace Tests
                 queue = new QueueICommand();
                 ExceptionHandler.Register(typeof(TestWrongCommand2), typeof(CommandException), ExceptionHandlerFuncs.CallLogExCommandFunc);
                 TestWrongCommand2 wrongCommand2 = new TestWrongCommand2();
-                queue.commands.Push(wrongCommand2);
+                queue.Enqueue(wrongCommand2);
                 queue.Execute(cts.Token);
                 Console.SetOut(sw);
                 Assert.That(sw.ToString().Trim(), Is.Not.EqualTo(LogExCommand.defExMessage));
@@ -87,7 +87,7 @@ namespace Tests
                 ExceptionHandler.Register(typeof(TestWrongCommand1), typeof(CommandException), ExceptionHandlerFuncs.RepeatCommandFunc);
 
                 TestWrongCommand1 wrongCommand1 = new TestWrongCommand1();
-                queue.commands.Push(wrongCommand1);
+                queue.Enqueue(wrongCommand1);
                 queue.Execute(cts.Token);
                 Assert.That(queue.counterExecuteCommand, Is.EqualTo(2));
                 Assert.That(sw.ToString().Trim(), Is.EqualTo(ExceptionHandler.defExCommand?.ToString() ?? string.Empty));
@@ -97,7 +97,7 @@ namespace Tests
 
                 queue = new QueueICommand();
                 ExceptionHandler.Register(typeof(RepeatCommand), typeof(CommandException), ExceptionHandlerFuncs.LogExCommandFunc);
-                queue.commands.Push(wrongCommand1);
+                queue.Enqueue(wrongCommand1);
                 queue.Execute(cts.Token);
                 Assert.That(sw.ToString().Trim(), Is.Not.EqualTo(LogExCommand.defExMessage));
                 Assert.That(sw.ToString().Trim(), Is.Not.Empty);
@@ -114,7 +114,7 @@ namespace Tests
                 ExceptionHandler.Register(typeof(CallRepeatCommand), typeof(CommandException), ExceptionHandlerFuncs.RepeatCommandFunc);
                 ExceptionHandler.Register(typeof(RepeatCommand), typeof(CommandException), ExceptionHandlerFuncs.LogExCommandFunc);
 
-                queue.commands.Push(wrongCommand1);
+                queue.Enqueue(wrongCommand1);
                 queue.Execute(cts.Token);
                 Assert.That(sw.ToString().Trim(), Is.Not.EqualTo(LogExCommand.defExMessage));
                 Assert.That(sw.ToString().Trim(), Is.Not.Empty);
