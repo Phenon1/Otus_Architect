@@ -30,8 +30,48 @@ namespace IoCProj
                 return (T)_rootScope[key](args);
             }
 
-            var currentScope = _currentScope.Value;
-            if (currentScope != null && currentScope.TryGetValue(key, out var strategy))
+            if (TryResolveFromNamedScope(key, args, out T scopedResult))
+            {
+                return scopedResult;
+            }
+
+            return ResolveFromStorage<T>(_currentScope.Value, key, args);
+        }
+
+        private static bool TryResolveFromNamedScope<T>(string key, object[] args, out T result)
+        {
+            result = default!;
+
+            if (!key.StartsWith("Scopes.", StringComparison.Ordinal) || key.StartsWith("Scopes.Id.", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var scopeAndDependency = key["Scopes.".Length..];
+            var separatorIndex = scopeAndDependency.IndexOf('.');
+
+            if (separatorIndex <= 0 || separatorIndex == scopeAndDependency.Length - 1)
+            {
+                return false;
+            }
+
+            var scopeId = scopeAndDependency[..separatorIndex];
+            var dependencyKey = scopeAndDependency[(separatorIndex + 1)..];
+
+            if (!_rootScope.TryGetValue($"Scopes.Id.{scopeId}", out var scopeStrategy))
+            {
+                throw new KeyNotFoundException($"Scope '{scopeId}' not found.");
+            }
+
+            var scope = (IDictionary<string, DependencyStrategy>)scopeStrategy();
+            result = ResolveFromStorage<T>(scope, dependencyKey, args);
+
+            return true;
+        }
+
+        private static T ResolveFromStorage<T>(IDictionary<string, DependencyStrategy>? storage, string key, object[] args)
+        {
+            if (storage != null && storage.TryGetValue(key, out var strategy))
             {
                 return (T)strategy(args);
             }

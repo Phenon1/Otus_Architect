@@ -56,5 +56,21 @@ namespace Tests
             IoC.Resolve<ICommand>("Scopes.Current", "ScopeB").Execute();
             Assert.That(IoC.Resolve<string>("Weapon"), Is.EqualTo("Plasma"));
         }
+
+        [Test]
+        public void Test_Resolve_From_Named_Scope_Without_Switching_Current()
+        {
+
+            IoC.Resolve<ICommand>("Scopes.Current", "root").Execute();
+            IoC.Resolve<ICommand>("IoC.Register", "ScopedWeapon", (IoC.DependencyStrategy)((args) => "Laser")).Execute();
+
+            IoC.Resolve<ICommand>("Scopes.New", "ScopeB").Execute();
+            IoC.Resolve<ICommand>("IoC.Register", "ScopedWeapon", (IoC.DependencyStrategy)((args) => "Plasma")).Execute();
+
+            IoC.Resolve<ICommand>("Scopes.Current", "root").Execute();
+
+            Assert.That(IoC.Resolve<string>("Scopes.ScopeB.ScopedWeapon"), Is.EqualTo("Plasma"));
+            Assert.That(IoC.Resolve<string>("ScopedWeapon"), Is.EqualTo("Laser"));
+        }
     }
 }
