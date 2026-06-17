@@ -28,6 +28,7 @@
     <ProjectReference Include="..\HW4\HW4.csproj" />
     <ProjectReference Include="..\ModelsProj\ModelsProj.csproj" />
     <ProjectReference Include="..\IoCProj\IoCProj.csproj" />
+    <ProjectReference Include="..\MessageBrokerProj\MessageBrokerProj.csproj" />
   </ItemGroup>
 
 </Project>
