@@ -5,7 +5,7 @@ VisualStudioVersion = 18.3.11520.95
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW4", "HW4\HW4.csproj", "{F95B70F6-91DE-4A5D-B5EB-8685C4B21496}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelsProj", "HW7\ModelsProj.csproj", "{F1D2F342-192F-4CAC-8062-76322E33C10D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelsProj", "ModelsProj\ModelsProj.csproj", "{F1D2F342-192F-4CAC-8062-76322E33C10D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{21B8FF45-1F9B-4819-AD9A-A39C6016FA0E}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoCProj", "IoCProj\IoCProj.csproj", "{0B7694CA-9341-4B7F-9A9E-7DFF9898BB91}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandsProj", "CommandsProj\CommandsProj.csproj", "{84277961-2E3F-A36B-A928-79693D493BA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageBrokerProj", "MessageBrokerProj\MessageBrokerProj.csproj", "{7C828E44-5342-448F-8EBA-5A90A97563B5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{84277961-2E3F-A36B-A928-79693D493BA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84277961-2E3F-A36B-A928-79693D493BA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84277961-2E3F-A36B-A928-79693D493BA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C828E44-5342-448F-8EBA-5A90A97563B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C828E44-5342-448F-8EBA-5A90A97563B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C828E44-5342-448F-8EBA-5A90A97563B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C828E44-5342-448F-8EBA-5A90A97563B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

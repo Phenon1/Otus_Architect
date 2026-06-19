@@ -26,8 +26,9 @@
   <ItemGroup>
     <ProjectReference Include="..\CommandsProj\CommandsProj.csproj" />
     <ProjectReference Include="..\HW4\HW4.csproj" />
-    <ProjectReference Include="..\HW7\ModelsProj.csproj" />
+    <ProjectReference Include="..\ModelsProj\ModelsProj.csproj" />
     <ProjectReference Include="..\IoCProj\IoCProj.csproj" />
+    <ProjectReference Include="..\MessageBrokerProj\MessageBrokerProj.csproj" />
   </ItemGroup>
 
 </Project>

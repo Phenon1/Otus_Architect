@@ -12,6 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CommandsProj\CommandsProj.csproj" />
-    <ProjectReference Include="..\HW7\ModelsProj.csproj" />
+    <ProjectReference Include="..\ModelsProj\ModelsProj.csproj" />
   </ItemGroup>
 </Project>
