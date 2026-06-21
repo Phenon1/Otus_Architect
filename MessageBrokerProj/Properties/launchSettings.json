@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "MessageBrokerProj": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "JWT_SIGNING_KEY": "development-key-for-local-launch-only-32-bytes",
+        "JWT_ISSUER": "otus-authorization-service",
+        "JWT_AUDIENCE": "otus-game-server",
+        "RABBITMQ_HOST": "localhost",
+        "RABBITMQ_USER": "guest",
+        "RABBITMQ_PASSWORD": "guest"
+      }
+    }
+  }
+}

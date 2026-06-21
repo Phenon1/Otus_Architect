@@ -8,6 +8,9 @@ public class GameMessage
     [JsonPropertyName("gameId")]
     public string GameId { get; set; } = string.Empty;
 
+    [JsonPropertyName("token")]
+    public string Token { get; set; } = string.Empty;
+
     [JsonPropertyName("objectId")]
     public string ObjectId { get; set; } = string.Empty;
 

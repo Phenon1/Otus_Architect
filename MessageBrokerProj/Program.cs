@@ -3,6 +3,7 @@ using IoCProj;
 using ModelsProj;
 using ModelsProj.TypesObject;
 using RabbitMQ.Client;
+using System.Text;
 
 namespace MessageBrokerProj;
 
@@ -21,6 +22,7 @@ public static class Program
 
         using RabbitMqGameMessageEndpoint endpoint = new RabbitMqGameMessageEndpoint(
             registry,
+            CreateAuthorizer(),
             new SystemTextJsonIncomingMessageSerializer(),
             RabbitMqGameMessageEndpoint.DefaultQueueName,
             CreateConnectionFactory());
@@ -56,6 +58,26 @@ public static class Program
                 ? port
                 : AmqpTcpEndpoint.UseDefaultPort
         };
+    }
+
+    private static IGameMessageAuthorizer CreateAuthorizer()
+    {
+        string signingKey = Environment.GetEnvironmentVariable("JWT_SIGNING_KEY")
+            ?? throw new InvalidOperationException(
+                "Не задан ключ подписи JWT. Настройте переменную JWT_SIGNING_KEY.");
+
+        if (Encoding.UTF8.GetByteCount(signingKey) < 32)
+        {
+            throw new InvalidOperationException(
+                "JWT_SIGNING_KEY должна содержать не менее 32 байт в кодировке UTF-8.");
+        }
+
+        return new JwtGameMessageAuthorizer(new JwtGameMessageAuthorizerOptions
+        {
+            SigningKey = signingKey,
+            Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "otus-authorization-service",
+            Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "otus-game-server"
+        });
     }
 
     private static void ConfigureDemoGame(QueueICommand queue, InMemoryGameRegistry registry)
