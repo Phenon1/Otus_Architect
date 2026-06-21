@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "AuthorizationService": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "JWT_SIGNING_KEY": "development-key-for-local-launch-only-32-bytes",
+        "JWT_ISSUER": "otus-authorization-service",
+        "JWT_AUDIENCE": "otus-game-server"
+      },
+      "applicationUrl": "https://localhost:54426;http://localhost:54427"
+    }
+  }
+}

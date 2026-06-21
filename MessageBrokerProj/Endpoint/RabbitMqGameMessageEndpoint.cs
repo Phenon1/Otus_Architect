@@ -11,6 +11,7 @@ public sealed class RabbitMqGameMessageEndpoint : IDisposable
 
     private readonly ConnectionFactory? _connectionFactory;
     private readonly IGameRegistry _gameRegistry;
+    private readonly IGameMessageAuthorizer _authorizer;
     private readonly IIncomingMessageSerializer _serializer;
     private readonly string _queueName;
 
@@ -19,11 +20,13 @@ public sealed class RabbitMqGameMessageEndpoint : IDisposable
 
     public RabbitMqGameMessageEndpoint(
         IGameRegistry gameRegistry,
+        IGameMessageAuthorizer authorizer,
         IIncomingMessageSerializer serializer,
         string queueName = DefaultQueueName,
         ConnectionFactory? connectionFactory = null)
     {
         _gameRegistry = gameRegistry;
+        _authorizer = authorizer;
         _serializer = serializer;
         _queueName = queueName;
         _connectionFactory = connectionFactory;
@@ -51,6 +54,13 @@ public sealed class RabbitMqGameMessageEndpoint : IDisposable
         try
         {
             GameMessage message = _serializer.Deserialize(delivery.Body);
+
+            GameMessageValidationResult authorizationResult = _authorizer.Authorize(message);
+            if (!authorizationResult.IsValid)
+            {
+                Reject(delivery, authorizationResult.Error ?? "Сообщение не прошло проверку JWT.");
+                return;
+            }
 
             if (!_gameRegistry.TryGetGame(message.GameId, out GameContext gameContext))
             {

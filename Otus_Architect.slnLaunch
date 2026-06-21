@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Авторизация + игровой сервер",
+    "Projects": [
+      {
+        "Path": "AuthorizationService\\AuthorizationService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "MessageBrokerProj\\MessageBrokerProj.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

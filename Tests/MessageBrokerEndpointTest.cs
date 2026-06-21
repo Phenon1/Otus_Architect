@@ -4,13 +4,21 @@ using IoCProj;
 using MessageBrokerProj;
 using ModelsProj;
 using ModelsProj.TypesObject;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Tests;
 
 public class MessageBrokerEndpointTest
 {
+    private const string SigningKey = "message-broker-test-signing-key-32-bytes-minimum";
+    private const string WrongSigningKey = "wrong-message-broker-signing-key-32-bytes";
+    private const string Issuer = "test-authorization-service";
+    private const string Audience = "test-game-server";
+
     [Test]
     public void EndpointRoutesMessage()
     {
@@ -18,7 +26,7 @@ public class MessageBrokerEndpointTest
         InMemoryGameRegistry registry = new InMemoryGameRegistry();
         registry.TryRegister(new GameContext("game-1", queue, "scope-game-1"));
 
-        Delivery delivery = new Delivery(ValidJson);
+        Delivery delivery = new Delivery(ValidJson());
         Endpoint(registry).HandleDelivery(delivery);
 
         Assert.That(delivery.Acked, Is.True);
@@ -34,11 +42,40 @@ public class MessageBrokerEndpointTest
         Delivery badJson = new Delivery("{ not json");
         Endpoint(new InMemoryGameRegistry()).HandleDelivery(badJson);
 
-        Delivery unknownGame = new Delivery(ValidJson);
+        Delivery unknownGame = new Delivery(ValidJson());
         Endpoint(new InMemoryGameRegistry()).HandleDelivery(unknownGame);
 
         AssertRejected(badJson);
         AssertRejected(unknownGame);
+    }
+
+    [Test]
+    public void EndpointRejectsUnauthorizedMessagesBeforeEnqueue()
+    {
+        QueueICommand queue = new QueueICommand();
+        InMemoryGameRegistry registry = new InMemoryGameRegistry();
+        registry.TryRegister(new GameContext("game-1", queue, "scope-game-1"));
+        RabbitMqGameMessageEndpoint endpoint = Endpoint(registry);
+
+        Delivery[] deliveries =
+        [
+            new(ValidJson(token: string.Empty)),
+            new(ValidJson(token: CreateToken("user-1", "game-1", signingKey: WrongSigningKey))),
+            new(ValidJson(token: CreateToken(
+                "user-1",
+                "game-1",
+                DateTime.UtcNow.AddHours(-2),
+                DateTime.UtcNow.AddHours(-1)))),
+            new(ValidJson(token: CreateToken("user-1", "another-game")))
+        ];
+
+        foreach (Delivery delivery in deliveries)
+        {
+            endpoint.HandleDelivery(delivery);
+            AssertRejected(delivery);
+        }
+
+        Assert.That(queue.IsEmpty, Is.True);
     }
 
     [Test]
@@ -58,7 +95,7 @@ public class MessageBrokerEndpointTest
         });
         RegisterEnqueue(queue);
 
-        new InterpretCommand(Message(ValidJson), context).Execute();
+        new InterpretCommand(Message(ValidJson()), context).Execute();
 
         Assert.That(queue.TryDequeue(out ICommand? command), Is.True);
         Assert.That(command, Is.SameAs(targetCommand));
@@ -70,7 +107,7 @@ public class MessageBrokerEndpointTest
         GameContext context = Context(out QueueICommand queue);
         RegisterValidation(GameMessageValidationResult.Valid());
         RegisterObject("ship-1", new SpaceShip());
-        Assert.Throws<GameMessageSecurityException>(() => new InterpretCommand(Message(ValidJson), context).Execute());
+        Assert.Throws<GameMessageSecurityException>(() => new InterpretCommand(Message(ValidJson()), context).Execute());
         Assert.That(queue.IsEmpty, Is.True);
 
         context = Context(out queue);
@@ -78,7 +115,7 @@ public class MessageBrokerEndpointTest
         RegisterOperation("startMove", _ => throw new GameMessageSecurityException("Аргумент 'velocity' обязателен."));
         RegisterEnqueue(queue);
 
-        Assert.Throws<GameMessageSecurityException>(() => new InterpretCommand(Message(ValidJson), context).Execute());
+        Assert.Throws<GameMessageSecurityException>(() => new InterpretCommand(Message(ValidJson()), context).Execute());
         Assert.That(queue.IsEmpty, Is.True);
     }
 
@@ -100,7 +137,15 @@ public class MessageBrokerEndpointTest
     }
 
     private static RabbitMqGameMessageEndpoint Endpoint(IGameRegistry registry) =>
-        new RabbitMqGameMessageEndpoint(registry, new SystemTextJsonIncomingMessageSerializer());
+        new RabbitMqGameMessageEndpoint(
+            registry,
+            new JwtGameMessageAuthorizer(new JwtGameMessageAuthorizerOptions
+            {
+                SigningKey = SigningKey,
+                Issuer = Issuer,
+                Audience = Audience
+            }),
+            new SystemTextJsonIncomingMessageSerializer());
 
     private static GameContext Context(out QueueICommand queue)
     {
@@ -144,16 +189,44 @@ public class MessageBrokerEndpointTest
         return JsonSerializer.Deserialize<GameResponse>(delivery.PublishedResponse!)!;
     }
 
-    private const string ValidJson = """
+    private static string ValidJson(string? token = null, string gameId = "game-1") =>
+        JsonSerializer.Serialize(new
+        {
+            gameId,
+            token = token ?? CreateToken("user-1", gameId),
+            objectId = "ship-1",
+            operationId = "startMove",
+            args = new { velocity = 2 },
+            timestamp = "2026-06-16T00:00:00Z",
+            version = "1.0"
+        });
+
+    private static string CreateToken(
+        string userId,
+        string gameId,
+        DateTime? notBefore = null,
+        DateTime? expires = null,
+        string signingKey = SigningKey)
     {
-      "gameId": "game-1",
-      "objectId": "ship-1",
-      "operationId": "startMove",
-      "args": {
-        "velocity": 2
-      },
-      "timestamp": "2026-06-16T00:00:00Z",
-      "version": "1.0"
+        DateTime validFrom = notBefore ?? DateTime.UtcNow.AddMinutes(-1);
+        DateTime validTo = expires ?? DateTime.UtcNow.AddMinutes(30);
+        Claim[] claims =
+        [
+            new(JwtRegisteredClaimNames.Sub, userId),
+            new(JwtGameMessageAuthorizer.GameIdClaim, gameId),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        ];
+        SigningCredentials credentials = new(
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
+            SecurityAlgorithms.HmacSha256);
+        JwtSecurityToken token = new(
+            Issuer,
+            Audience,
+            claims,
+            validFrom,
+            validTo,
+            credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    """;
 }
