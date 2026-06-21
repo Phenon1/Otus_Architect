@@ -1,6 +1,7 @@
 using CommandsProj;
 using CommandsProj.CommandExceptions;
 using CommandsProj.Commands.ProcessorCommands;
+using CommandsProj.States;
 
 namespace Tests
 {
@@ -118,6 +119,94 @@ namespace Tests
 
             new HardStopProcessorCommand(processor).Execute();
             WaitUntilProcessorStopped(processor);
+        }
+
+        [Test]
+        public void NormalStateExecutesCommandAndReturnsItself()
+        {
+            QueueICommand queue = new QueueICommand();
+            bool executed = false;
+            NormalState state = new NormalState(queue);
+            queue.Enqueue(new ActionCommand(() => executed = true));
+
+            ICommandProcessorState? nextState = state.Handle(CancellationToken.None);
+
+            Assert.That(executed, Is.True);
+            Assert.That(nextState, Is.SameAs(state));
+        }
+
+        [Test]
+        public void MoveToCommandChangesModeStartingWithNextCommand()
+        {
+            QueueICommand sourceQueue = new QueueICommand();
+            QueueICommand targetQueue = new QueueICommand();
+            bool executed = false;
+            NormalState normalState = new NormalState(sourceQueue);
+            ICommand commandToMove = new ActionCommand(() => executed = true);
+            sourceQueue.Enqueue(new MoveToCommand(targetQueue));
+            sourceQueue.Enqueue(commandToMove);
+
+            ICommandProcessorState? moveToState = normalState.Handle(CancellationToken.None);
+            ICommandProcessorState? nextState = moveToState!.Handle(CancellationToken.None);
+
+            Assert.That(moveToState, Is.TypeOf<MoveToState>());
+            Assert.That(nextState, Is.SameAs(moveToState));
+            Assert.That(executed, Is.False);
+            Assert.That(targetQueue.TryDequeue(out ICommand? movedCommand), Is.True);
+            Assert.That(movedCommand, Is.SameAs(commandToMove));
+        }
+
+        [Test]
+        public void RunCommandReturnsMoveToStateToNormalMode()
+        {
+            QueueICommand sourceQueue = new QueueICommand();
+            QueueICommand targetQueue = new QueueICommand();
+            MoveToState state = new MoveToState(sourceQueue, targetQueue);
+            sourceQueue.Enqueue(new RunCommand());
+
+            ICommandProcessorState? nextState = state.Handle(CancellationToken.None);
+
+            Assert.That(nextState, Is.TypeOf<NormalState>());
+            Assert.That(targetQueue.IsEmpty, Is.True);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void HardStopCommandReturnsNullFromAnyState(bool normalMode)
+        {
+            QueueICommand sourceQueue = new QueueICommand();
+            QueueICommand targetQueue = new QueueICommand();
+            ICommandProcessorState state = normalMode
+                ? new NormalState(sourceQueue, targetQueue)
+                : new MoveToState(sourceQueue, targetQueue);
+            sourceQueue.Enqueue(new HardStopCommand());
+
+            ICommandProcessorState? nextState = state.Handle(CancellationToken.None);
+
+            Assert.That(nextState, Is.Null);
+        }
+
+        [Test]
+        public void ProcessorSwitchesBetweenNormalAndMoveToModes()
+        {
+            QueueICommand sourceQueue = new QueueICommand();
+            QueueICommand targetQueue = new QueueICommand();
+            CommandProcessorThread processor = new CommandProcessorThread(sourceQueue);
+            using ManualResetEventSlim normalCommandExecuted = new ManualResetEventSlim(false);
+            ICommand movedCommand = new ActionCommand(() => { });
+
+            sourceQueue.Enqueue(new MoveToCommand(targetQueue));
+            sourceQueue.Enqueue(movedCommand);
+            sourceQueue.Enqueue(new RunCommand());
+            sourceQueue.Enqueue(new ActionCommand(normalCommandExecuted.Set));
+            sourceQueue.Enqueue(new HardStopCommand());
+
+            processor.Start();
+
+            Assert.That(normalCommandExecuted.Wait(TimeSpan.FromSeconds(2)), Is.True);
+            WaitUntilProcessorStopped(processor);
+            Assert.That(targetQueue.TryDequeue(out ICommand? actualMovedCommand), Is.True);
+            Assert.That(actualMovedCommand, Is.SameAs(movedCommand));
         }
     }
 }
