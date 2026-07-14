@@ -23,8 +23,11 @@ public sealed class InterpretCommand : ICommand
 
         if (!validationResult.IsValid)
         {
-            throw new GameMessageSecurityException(validationResult.Error ?? "Сообщение не прошло проверку безопасности.");
+            throw new GameMessageSecurityException(
+                validationResult.Error ?? "Сообщение не прошло проверку безопасности.");
         }
+
+        ExecuteOptionalAuthorization();
 
         Func<GameMessage, ICommand> commandFactory;
         try
@@ -44,5 +47,20 @@ public sealed class InterpretCommand : ICommand
         {
             throw new GameCommandEnqueueException(_message.GameId);
         }
+    }
+
+    private void ExecuteOptionalAuthorization()
+    {
+        ICommand authorization;
+        try
+        {
+            authorization = IoC.Resolve<ICommand>(GameMessageIocKeys.Authorize, _message);
+        }
+        catch (KeyNotFoundException)
+        {
+            return;
+        }
+
+        authorization.Execute();
     }
 }
